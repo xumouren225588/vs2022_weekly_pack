@@ -1,0 +1,90 @@
+name: Windows Checkout and Output
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download installer
+        run: |
+          curl https://aka.ms/vs/17/release/vs_community.exe --output vs.exe
+        shell: cmd
+      - name: Create lyaout
+        run: |
+          start "" /wait .\vs --layout "%~dp0\vs2022\Data" --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Workload.ManagedDesktop --lang zh-CN
+        shell: cmd
+      - name: Upload zip
+        id: upload-artifact-zip
+        uses: actions/upload-artifact@v3
+        with:
+          name: vs2022-weekly-pack
+          path: vs2022\*
+          retention-days: 1
+      - name: Generate zip nightly.link and create download task
+        shell: cmd
+        env:
+          API_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          ARTIFACT_ID: ${{ steps.upload-artifact-zip.outputs.artifact-id }}
+          GITHUB_USER: xumouren225588
+          GITHUB_REPO: vs2022_weekly_pack
+          FOLDER_ID: 23816135
+        run: |
+          setlocal enabledelayedexpansion
+          set NIGHTLY_LINK=nightly.link/%GITHUB_USER%/%GITHUB_REPO%/actions/artifacts/%ARTIFACT_ID%.zip
+          SET YYYY=%DATE:~0,4%
+          SET MM=%DATE:~5,2%
+          SET DD=%DATE:~8,2%
+          
+          rem 拼出最终文件名
+          set "FILE_NAME=vstudio-pack-sfx-%YYYY%-%MM%-%DD%.zip"
+
+          curl -X POST "https://open-api.123pan.com/api/v1/offline/download" ^
+            -H "Authorization: Bearer %API_TOKEN%" ^
+            -H "Platform: open_platform" ^
+            -H "Content-Type: application/json" ^
+            --data "{\"url\":\"https://jiashu.1win.eu.org/https://%NIGHTLY_LINK%\", \"dirID\": %FOLDER_ID%, \"fileName\":\"!FILE_NAME!\"}"
+      - name: pack 7zip
+        run: |
+          cd .\vs2022
+          ..\7zr a ..\pack.7z .\Data
+        shell: cmd
+      - name: build sfx
+        run: |
+          copy /b .\7zSD.sfx + .\config.txt + .\pack.7z Setup.exe
+        shell: cmd
+      - name: Upload sfx
+        id: upload-artifact-sfx
+        uses: actions/upload-artifact@v3
+        with:
+          name: vs2022-weekly-pack-sfx
+          path: Setup.exe
+          retention-days: 1
+      - name: Generate sfx nightly.link and create download task
+        shell: cmd
+        env:
+          API_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          ARTIFACT_ID: ${{ steps.upload-artifact-sfx.outputs.artifact-id }}
+          GITHUB_USER: xumouren225588
+          GITHUB_REPO: vs2022_weekly_pack
+          FOLDER_ID: 23816135
+        run: |
+          setlocal enabledelayedexpansion
+          set NIGHTLY_LINK=nightly.link/%GITHUB_USER%/%GITHUB_REPO%/actions/artifacts/%ARTIFACT_ID%.zip
+          SET YYYY=%DATE:~0,4%
+          SET MM=%DATE:~5,2%
+          SET DD=%DATE:~8,2%
+          
+          rem 拼出最终文件名
+          set "FILE_NAME=vstudio-pack-sfx-%YYYY%-%MM%-%DD%.zip"
+
+          curl -X POST "https://open-api.123pan.com/api/v1/offline/download" ^
+            -H "Authorization: Bearer %API_TOKEN%" ^
+            -H "Platform: open_platform" ^
+            -H "Content-Type: application/json" ^
+            --data "{\"url\":\"https://jiashu.1win.eu.org/https://%NIGHTLY_LINK%\", \"dirID\": %FOLDER_ID%, \"fileName\":\"!FILE_NAME!\"}"
