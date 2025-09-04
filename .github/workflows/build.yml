@@ -17,7 +17,7 @@ jobs:
         shell: cmd
       - name: Create lyaout
         run: |
-          start .\vs --layout "%~dp0\vs2022\Data" --add Microsoft.VisualStudio.Workload.NativeDesktop --lang zh-CN --passive --wait
+          .\vs --layout "%~dp0\vs2022\Data" --add Microsoft.VisualStudio.Workload.NativeDesktop --lang zh-CN --passive --wait
         shell: cmd
       - name: Upload zip
         id: upload-artifact-zip
