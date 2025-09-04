@@ -1,4 +1,4 @@
-name: Windows Checkout and Output
+name: Vs2022 weekly pack
 
 on: 
   workflow_dispatch:
