@@ -21,7 +21,7 @@ jobs:
           python-version: 3.8.5
       - name: Create lyaout
         run: |
-          python .\build.py
+          start /wait .\vs_buildtools.exe --layout "%cd%\vs2022\Data" --add Microsoft.VisualStudio.Workload.NativeDesktop --lang zh-CN --quiet --passive
         shell: cmd
       - name: Upload zip
         id: upload-artifact-zip
