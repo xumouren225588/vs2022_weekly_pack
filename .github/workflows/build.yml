@@ -15,9 +15,13 @@ jobs:
         run: |
           curl https://aka.ms/vs/17/release/vs_community.exe --output vs.exe
         shell: cmd
+      - name: Setup Python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: 3.8.5
       - name: Create lyaout
         run: |
-          .\vs --layout "%~dp0\vs2022\Data" --add Microsoft.VisualStudio.Workload.NativeDesktop --lang zh-CN --passive --wait
+          python .\build.py
         shell: cmd
       - name: Upload zip
         id: upload-artifact-zip
